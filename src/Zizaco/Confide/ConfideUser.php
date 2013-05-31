@@ -1,10 +1,9 @@
 <?php namespace Zizaco\Confide;
 
 use Illuminate\Auth\UserInterface;
-use LaravelBook\Ardent\Ardent;
-use J20\Uuid\Uuid;
+use Awareness\Aware;
 
-class ConfideUser extends Ardent implements UserInterface {
+class ConfideUser extends Aware implements UserInterface {
 
     /**
      * The database table used by the model.
@@ -28,7 +27,7 @@ class ConfideUser extends Ardent implements UserInterface {
     protected $hidden = array('password');
 
     /**
-     * List of attribute names which should be hashed. (Ardent)
+     * List of attribute names which should be hashed.
      *
      * @var array
      */
@@ -43,7 +42,7 @@ class ConfideUser extends Ardent implements UserInterface {
     public $autoHashPasswordAttributes = true;
 
     /**
-     * Ardent validation rules
+     * Aware validation rules
      *
      * @var array
      */
@@ -156,17 +155,15 @@ class ConfideUser extends Ardent implements UserInterface {
     }
 
     /**
-     * Overwrite the Ardent save method. Saves model into
+     * Overwrite the Aware save method. Saves model into
      * database
      *
-     * @param array $rules:array
-     * @param array $customMessages
-     * @param array $options
-     * @param \Closure $beforeSave
-     * @param \Closure $afterSave
+     * @param array $rules
+     * @param array $messages
+     * @param closure $callback
      * @return bool
      */
-    public function save( array $rules = array(), array $customMessages = array(), array $options = array(), \Closure $beforeSave = null, \Closure $afterSave = null )
+    public function save( array $rules = array(), array $messages = array(), \Closure $callback = null )
     {
         $duplicated = false;
 
@@ -177,11 +174,20 @@ class ConfideUser extends Ardent implements UserInterface {
 
         if(! $duplicated)
         {
-            return $this->real_save( $rules, $customMessages, $options, $beforeSave, $afterSave );    
+            $result = $this->real_save( $rules, $messages, $callback );    
+
+            if($result)
+            {
+                $this->afterSave(); // Run afterSave method
+            }
+
+            return $result;
         }
         else
         {
-            $this->validationErrors->add(
+            $this->getErrors();
+
+            $this->errorBag->add(
                 'duplicated',
                 static::$app['translator']->get('confide::confide.alerts.duplicated_credentials')
             );
@@ -191,18 +197,17 @@ class ConfideUser extends Ardent implements UserInterface {
     }
 
     /**
-     * Ardent method overloading:
+     * Aware method overloading:
      * Before save the user. Generate a confirmation
      * code if is a new user.
      *
-     * @param bool $forced Indicates whether the user is being saved forcefully
      * @return bool
      */
-    public function beforeSave( $forced = false )
+    public function onSave()
     {
         if ( empty($this->id) )
         {
-            $this->confirmation_code = $this->generateUuid($this->table, 'confirmation_code');
+            $this->confirmation_code = md5( uniqid(mt_rand(), true) );
         }
 
         /*
@@ -218,17 +223,15 @@ class ConfideUser extends Ardent implements UserInterface {
     }
 
     /**
-     * Ardent method overloading:
      * After save, delivers the confirmation link email.
      * code if is a new user.
      *
      * @param bool $success
-     * @param bool $forced Indicates whether the user is being saved forcefully
      * @return bool
      */
-    public function afterSave( $success,  $forced = false )
+    public function afterSave()
     {
-        if ( $success  and ! $this->confirmed )
+        if ( ! $this->confirmed )
         {
             $view = static::$app['config']->get('confide::email_account_confirmation');
 
@@ -239,24 +242,21 @@ class ConfideUser extends Ardent implements UserInterface {
     }
 
     /**
-     * Runs the real eloquent save method or returns
+     * Runs the real eloquent/aware save method or returns
      * true if it's under testing. Because Eloquent
-     * and Ardent save methods are not Confide's
+     * and Aware save methods are not Confide's
      * responsibility.
      *
      * @param array $rules
-     * @param array $customMessages
-     * @param array $options
-     * @param \Closure $beforeSave
-     * @param \Closure $afterSave
+     * @param array $messages
+     * @param closure $callback
      * @return bool
      */
-    protected function real_save( array $rules = array(), array $customMessages = array(), array $options = array(), \Closure $beforeSave = null, \Closure $afterSave = null )
+    protected function real_save( array $rules = array(), array $messages = array(), \Closure $callback = null )
     {
         if ( defined('CONFIDE_TEST') )
         {
-            $this->beforeSave();
-            $this->afterSave( true );
+            $this->onSave();
             return true;
         }
         else{
@@ -271,25 +271,8 @@ class ConfideUser extends Ardent implements UserInterface {
                 $rules['password'] = 'required';
             }
 
-            return parent::save( $rules, $customMessages, $options, $beforeSave, $afterSave );
+            return parent::save( $rules, $messages, $callback );
         }
-    }
-
-    /**
-     * Alias of save but uses updateRules instead of rules.
-     * @param array $rules
-     * @param array $customMessages
-     * @param array $options
-     * @param callable $beforeSave
-     * @param callable $afterSave
-     * @return bool
-     */
-    public function amend( array $rules = array(), array $customMessages = array(), array $options = array(), \Closure $beforeSave = null, \Closure $afterSave = null )
-    {
-        if(empty($rules)) {
-            $rules = $this->getUpdateRules();
-        }
-        return $this->save( $rules, $customMessages, $options, $beforeSave, $afterSave );
     }
 
     /**
@@ -335,18 +318,22 @@ class ConfideUser extends Ardent implements UserInterface {
     |--------------------------------------------------------------------------
     |
     */
-
-    /**
-     * [Deprecated] Generates UUID and checks it for uniqueness against a table/column.
+   
+   /**
+     * [Deprecated] Alias of save but uses updateRules instead of rules.
      *
      * @deprecated
-     * @param  $table
-     * @param  $field
-     * @return string
+     * @param array $rules
+     * @param array $messages
+     * @param closure $callback
+     * @return bool
      */
-    protected function generateUuid($table, $field)
+    public function amend( array $rules = array(), array $messages = array(), \Closure $callback = null )
     {
-        return md5( uniqid(mt_rand(), true) );
+        if(empty($rules))
+            $rules = $this->updateRules;
+
+        return $this->save( $rules, $messages, $options, $callback );
     }
 
     /**
