@@ -39,7 +39,7 @@ class RoutesCommand extends Command {
      */
     public function fire()
     {
-        $name = $this->prepareName($this->option('controller'), $this->option('controller_prefix'));
+        $name = $this->prepareName($this->option('controller'));
         $restful = $this->option('restful');
 
         $this->line('');
@@ -66,7 +66,7 @@ class RoutesCommand extends Command {
             $this->line('');
 
             $this->info( "Appending routes..." );
-            if( $this->appendRoutes( $name, $restful ) )
+            if( $this->appendRoutes( $name, , $this->option('controller_prefix'), $restful ) )
             {
                 $this->info( "app/routes.php Patched successfully!" );
             }
@@ -104,7 +104,7 @@ class RoutesCommand extends Command {
      * @param string  $name
      * @return string
      */
-    protected function prepareName( $name = '', $controller_prefix = '' )
+    protected function prepareName( $name = '' )
     {
         $name = ( $name != '') ? ucfirst($name) : 'User';
         
@@ -117,11 +117,6 @@ class RoutesCommand extends Command {
             $name .= 'Controller';
         }
 
-        if (!empty($controller_prefix)) 
-        {
-            $name = ucfirst($controller_prefix) . "_" . $name;
-        }
-
         return $name;
     }
 
@@ -131,12 +126,17 @@ class RoutesCommand extends Command {
      * @param  string $name
      * @return bool
      */
-    protected function appendRoutes( $name = '', $restful = false )
+    protected function appendRoutes( $name = '', $controller_prefix = '', $restful = false )
     {        
+        if (!empty($controller_prefix)) {
+            $controller_prefix = ucfirst($controller_prefix) . "_";
+        }
+
         $app = app();
         $routes_file = $this->laravel->path.'/routes.php';
         $confide_routes = $app['view']->make('confide::generators.routes')
             ->with('name', $name)
+            ->with('controller_prefix', $controller_prefix)
             ->with('restful', $restful)
             ->render();
 
