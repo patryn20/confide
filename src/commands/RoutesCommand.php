@@ -66,7 +66,7 @@ class RoutesCommand extends Command {
             $this->line('');
 
             $this->info( "Appending routes..." );
-            if( $this->appendRoutes( $name, , $this->option('controller_prefix'), $restful ) )
+            if( $this->appendRoutes( $name, $this->option('controller_prefix'), $restful ) )
             {
                 $this->info( "app/routes.php Patched successfully!" );
             }
