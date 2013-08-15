@@ -40,6 +40,7 @@ class ControllerCommand extends Command {
     public function fire()
     {
         $name = $this->prepareName($this->option('name'), $this->option('controller_prefix'));
+        $controller_prefix = $this->option('controller_prefix');
         $file_name = $this->prepareName($this->option('name'));
         $restful = $this->option('restful');
 
