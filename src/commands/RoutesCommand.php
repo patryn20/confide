@@ -116,6 +116,11 @@ class RoutesCommand extends Command {
             $name .= 'Controller';
         }
 
+        if (!empty($controller_prefix)) 
+        {
+            $name = ucfirst($controller_prefix) . "_" . $name;
+        }
+
         return $name;
     }
 
