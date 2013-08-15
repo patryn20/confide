@@ -57,7 +57,7 @@ class ControllerCommand extends Command {
             $this->line('');
 
             $this->info( "Creating $name..." );
-            if( $this->createController( $file_name, $controller_prefix, $restful ) )
+            if( $this->createController( $name, $file_name, $controller_prefix, $restful ) )
             {
                 $this->info( "$name.php Successfully created!" );
             }
@@ -125,7 +125,7 @@ class ControllerCommand extends Command {
      * @param  string $name
      * @return bool
      */
-    protected function createController( $name = '', $file_name = '' $controller_prefix = '', $restful = false )
+    protected function createController( $name = '', $file_name = '', $controller_prefix = '', $restful = false )
     {
         $app = app();
         if (!empty($controller_prefix)) 
