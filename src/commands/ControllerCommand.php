@@ -129,15 +129,19 @@ class ControllerCommand extends Command {
     protected function createController( $name = '', $file_name = '', $controller_prefix = '', $restful = false )
     {
         $app = app();
+
+        $base_controller_prefix = '';
         if (!empty($controller_prefix)) 
         {
             $file_name = strtolower($controller_prefix) . "/" . $file_name;
+            $base_controller_prefix = ucfirst($controller_prefix) . "_"; 
         }
 
         $controller_file = $this->laravel->path."/controllers/$file_name.php";
         $output = $app['view']->make('confide::generators.controller')
             ->with('name', $name)
             ->with('restful', $restful)
+            ->with('controller_prefix', $base_controller_prefix)
             ->render();
 
         if( ! file_exists( $controller_file ) )
