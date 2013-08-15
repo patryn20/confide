@@ -1,6 +1,18 @@
 <?php
 
 return array(
+    /*
+      |--------------------------------------------------------------------------
+      | Controller Prefix
+      |--------------------------------------------------------------------------
+      |
+      | The prefix for the users controller. This is useful for nesting controllers
+      | into subfolders. For example: controllers/admin/UserController.php would
+      | be a prefix of admin to generate Admin_UserController class in the admin
+      | subdirectory.
+      |
+     */
+    'controller_prefix' => '',
 
     /*
     |--------------------------------------------------------------------------

@@ -39,7 +39,8 @@ class ControllerCommand extends Command {
      */
     public function fire()
     {
-        $name = $this->prepareName($this->option('name'));
+        $name = $this->prepareName($this->option('name'), $this->option('controller_prefix'));
+        $file_name = $this->prepareName($this->option('name'));
         $restful = $this->option('restful');
 
         $this->line('');
@@ -56,7 +57,7 @@ class ControllerCommand extends Command {
             $this->line('');
 
             $this->info( "Creating $name..." );
-            if( $this->createController( $name, $restful ) )
+            if( $this->createController( $file_name, $controller_prefix, $restful ) )
             {
                 $this->info( "$name.php Successfully created!" );
             }
@@ -86,6 +87,7 @@ class ControllerCommand extends Command {
 
         return array(
             array('name', null, InputOption::VALUE_OPTIONAL, 'Name of the controller.', $app['config']->get('auth.model')),
+            array('controller_prefix', null, InputOption::VALUE_OPTIONAL, 'Prefix of the controller.', $app['config']->get('confide.controller_prefix')),
             array('--restful', '-r', InputOption::VALUE_NONE, 'Generate RESTful controller.'),
         );
     }
@@ -96,7 +98,7 @@ class ControllerCommand extends Command {
      * @param string  $name
      * @return string
      */
-    protected function prepareName($name = '')
+    protected function prepareName($name = '', $controller_prefix = '')
     {
         $name = ( $name != '') ? ucfirst($name) : 'User';
         
@@ -109,6 +111,11 @@ class ControllerCommand extends Command {
             $name .= 'Controller';
         }
 
+        if (!empty($controller_prefix)) 
+        {
+            $name = ucfirst($controller_prefix) . "_" . $name;
+        }
+
         return $name;
     }
 
@@ -118,11 +125,15 @@ class ControllerCommand extends Command {
      * @param  string $name
      * @return bool
      */
-    protected function createController( $name = '', $restful = false )
+    protected function createController( $name = '', $file_name = '' $controller_prefix = '', $restful = false )
     {
         $app = app();
+        if (!empty($controller_prefix)) 
+        {
+            $file_name = strtolower($controller_prefix) . "/" . $file_name;
+        }
 
-        $controller_file = $this->laravel->path."/controllers/$name.php";
+        $controller_file = $this->laravel->path."/controllers/$file_name.php";
         $output = $app['view']->make('confide::generators.controller')
             ->with('name', $name)
             ->with('restful', $restful)
