@@ -88,7 +88,7 @@ class ControllerCommand extends Command {
 
         return array(
             array('name', null, InputOption::VALUE_OPTIONAL, 'Name of the controller.', $app['config']->get('auth.model')),
-            array('controller_prefix', null, InputOption::VALUE_OPTIONAL, 'Prefix of the controller.', $app['config']->get('confide.controller_prefix')),
+            array('controller_prefix', null, InputOption::VALUE_OPTIONAL, 'Prefix of the controller.', $app['config']->get('confide::controller_prefix')),
             array('--restful', '-r', InputOption::VALUE_NONE, 'Generate RESTful controller.'),
         );
     }
