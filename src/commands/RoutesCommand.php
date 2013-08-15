@@ -39,7 +39,7 @@ class RoutesCommand extends Command {
      */
     public function fire()
     {
-        $name = $this->prepareName($this->option('controller'));
+        $name = $this->prepareName($this->option('controller'), $this->option('controller_prefix'));
         $restful = $this->option('restful');
 
         $this->line('');
@@ -93,6 +93,7 @@ class RoutesCommand extends Command {
 
         return array(
             array('controller', null, InputOption::VALUE_OPTIONAL, 'Name of the controller.', $app['config']->get('auth.model')),
+            array('controller_prefix', null, InputOption::VALUE_OPTIONAL, 'Prefix of the controller.', $app['config']->get('confide::controller_prefix')),
             array('--restful', '-r', InputOption::VALUE_NONE, 'Generate RESTful controller.'),
         );
     }
@@ -103,7 +104,7 @@ class RoutesCommand extends Command {
      * @param string  $name
      * @return string
      */
-    protected function prepareName( $name = '' )
+    protected function prepareName( $name = '', $controller_prefix = '' )
     {
         $name = ( $name != '') ? ucfirst($name) : 'User';
         
