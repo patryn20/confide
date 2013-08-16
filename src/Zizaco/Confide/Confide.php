@@ -286,7 +286,7 @@ class Confide
         $controller_name = $model_name . "Controller";
 
         if (!empty($controller_prefix)) {
-            $controller_name = ucfirst($controller_prefix) . "_";
+            $controller_name = ucfirst($controller_prefix) . "_" . $controller_name;
         }
         return $controller_name;
     }
