@@ -279,6 +279,18 @@ class Confide
         return $url;
     }
 
+    public function controllerName() {
+        $controller_prefix = Config::get('confide::controller_prefix');
+        $model_name = Config::get('auth.model');
+
+        $controller_name = $model_name . "Controller";
+
+        if (!empty($controller_prefix)) {
+            $controller_name = ucfirst($controller_prefix) . "_";
+        }
+        return $controller_name;
+    }
+
     /**
      * Returns the name of the cache key that will be used
      * to store the failed attempts
