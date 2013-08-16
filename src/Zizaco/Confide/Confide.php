@@ -280,8 +280,8 @@ class Confide
     }
 
     public function controllerName() {
-        $controller_prefix = Config::get('confide::controller_prefix');
-        $model_name = Config::get('auth.model');
+        $controller_prefix = $this->app['config']->get('confide::controller_prefix');
+        $model_name = $this->app['config']->get('auth.model');
 
         $controller_name = $model_name . "Controller";
 
